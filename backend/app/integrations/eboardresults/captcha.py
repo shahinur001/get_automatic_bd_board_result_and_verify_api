@@ -38,12 +38,12 @@ class CaptchaClient:
                 "Content-Type", ""
             ).lower()
 
-            print("Requested URL:", response.url)
-            print("Status:", response.status_code)
-            print("Content-Type:", response.headers.get("Content-Type"))
-            print("Response Length:", len(response.content))
-            print("Response Preview:", response.text[:500])
-            print("Cookies:", self.session.cookies.get_dict())
+            # print("Requested URL:", response.url)
+            # print("Status:", response.status_code)
+            # print("Content-Type:", response.headers.get("Content-Type"))
+            # print("Response Length:", len(response.content))
+            # print("Response Preview:", response.text[:500])
+            # print("Cookies:", self.session.cookies.get_dict())
 
             if not content_type.startswith("image/"):
                 raise EBoardResponseError(

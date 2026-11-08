@@ -3,6 +3,7 @@ from pathlib import Path
 import requests
 import time
 
+
 from app.integrations.eboardresults.captcha import CaptchaClient
 from app.integrations.eboardresults.client import EBoardResultsClient
 from app.integrations.eboardresults.exceptions import EBoardResultsError
@@ -27,6 +28,7 @@ try:
     print("CAPTCHA image received successfully!")
     print("Saved:", output_path.resolve())
     print("Image size:", len(image_data), "bytes")
+    
 
 except EBoardResultsError as error:
     print("Integration error:", error)

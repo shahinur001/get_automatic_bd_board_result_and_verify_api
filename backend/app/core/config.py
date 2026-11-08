@@ -13,6 +13,14 @@ class Settings(BaseSettings):
 
     REQUEST_TIMEOUT: int = 30
 
+    GEMINI_API_KEY: str = "GEMINI_API_KEY"
+
+    EXAM_BOARD: str = "dhaka"
+    EXAM_TYPE: str = "ssc"
+    EXAM_YEAR: str = "2025"
+    ROLL: str = "Enter your roll"
+    REG_NO: str = "Enter your reg"
+
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
