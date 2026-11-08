@@ -23,6 +23,7 @@ frontend/dist/
 *.log
 captcha.png
 output_data.html
+homepage.html
 
 # Generated files
 storage/uploads/*
