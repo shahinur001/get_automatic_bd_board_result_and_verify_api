@@ -1,7 +1,7 @@
 from google import genai
 
 from app.core.config import settings
-from app.integrations.eboardresults.captcha import CaptchaClient
+from app.integrations.eboardresults.exceptions import EBoardResponseError
 
 genai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
@@ -14,6 +14,10 @@ class ExtractText:
                 contents=["Extract the text visible in this image precisely. Give only extracted number.", img]
         
             )
+
+            if not ai_response.text:
+                raise EBoardResponseError("Gemini returned no extracted text.")
+
             extracted_text = ai_response.text.strip()
             print(f"Extracted Text: {extracted_text}")
             

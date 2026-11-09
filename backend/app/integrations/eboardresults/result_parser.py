@@ -63,7 +63,7 @@ class ResultParser:
                 ) from exc
 
             
-            if payload.get("status") != 0 and payload.get("msg") != "Success":
+            if payload.get("status") != 0 or payload.get("msg") != "Success":
                 raise EBoardResponseError(
                     "Result not get successfully. "
                     f"Error Message: {payload.get('msg', 'Unknown error')}"
