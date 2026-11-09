@@ -23,7 +23,10 @@ class ExtractText:
             
             return extracted_text
 
-        except Exception as e:
-            print(f"Error communicating with Gemini API: {e}")
-            entered_text = input("Enter your CAPTCHA code from image: ")
-            return entered_text
+        except EBoardResponseError:
+            raise
+
+        except Exception as exc:
+            raise EBoardResponseError(
+                f"Gemini OCR failed: {exc}"
+            ) from exc

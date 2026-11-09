@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 class StudentResultRequest(BaseModel):
     board: str = Field(min_length=2, max_length=30)
     exam: str = Field(min_length=2, max_length=50)
-    year: int = Field(ge=1990, le=2100)
+    year: str = Field(min_length=4, max_length=4)
 
     result_type: int
 
