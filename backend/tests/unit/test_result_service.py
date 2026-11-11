@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock
 from app.services.result_service import ResultService
 from app.schemas.result import StudentResultRequest
 from app.core.config import settings
+from app.integrations.eboardresults.exceptions import EBoardConnectionError, EBoardResponseError
 
 def test_get_individual_result_success():
     request = StudentResultRequest(
@@ -67,4 +68,71 @@ def test_get_individual_result_success():
         )
 
         # Verify session cleanup in finally block
+        mock_client.session.close.assert_called_once()
+
+def test_get_individual_result_connection_error():
+
+    request = StudentResultRequest(
+        board=settings.EXAM_BOARD,
+        exam=settings.EXAM_TYPE,
+        year=settings.EXAM_YEAR,
+        result_type=1,
+        roll=settings.ROLL,
+        reg=settings.REG_NO,
+    )
+
+    with patch(
+        "app.services.result_service.EBoardResultsClient"
+    ) as mock_client_class:
+
+        mock_client = mock_client_class.return_value
+
+        mock_client.get_page.side_effect = EBoardConnectionError(
+            "Could not connect to external website."
+        )
+
+        service = ResultService()
+
+        try:
+            service.get_individual_result(request=request)
+            assert False, "Expected EBoardConnectionError"
+        except EBoardConnectionError:
+            pass
+
+        mock_client.session.close.assert_called_once()
+
+def test_get_individual_result_parser_error():
+    request = StudentResultRequest(
+        board=settings.EXAM_BOARD,
+        exam=settings.EXAM_TYPE,
+        year=settings.EXAM_YEAR,
+        result_type=1,
+        roll=settings.ROLL,
+        reg=settings.REG_NO,
+    )
+
+    with patch("app.services.result_service.EBoardResultsClient") as mock_client_class, \
+         patch("app.services.result_service.CaptchaClient") as mock_captcha_class, \
+         patch("app.services.result_service.Image.open") as mock_image_open, \
+         patch("app.services.result_service.ExtractText") as mock_ocr_class, \
+         patch("app.services.result_service.ResultParser") as mock_parser_class:
+
+        mock_client = mock_client_class.return_value
+        mock_captcha = mock_captcha_class.return_value
+        mock_parser = mock_parser_class.return_value
+
+        mock_captcha.get_captcha_image.return_value = b"fake_bytes"
+        mock_parser.get_ind_result.side_effect = EBoardResponseError(
+            "External service returned invalid JSON."
+        )
+
+        service = ResultService()
+
+        try:
+            service.get_individual_result(request=request)
+        except EBoardResponseError as exc:
+            assert "External service returned invalid JSON." in str(exc)
+        else:
+            assert False, "Expected EBoardResponseError was not raised"
+
         mock_client.session.close.assert_called_once()
