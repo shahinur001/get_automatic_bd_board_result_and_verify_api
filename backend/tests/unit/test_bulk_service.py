@@ -4,6 +4,7 @@ import pandas as pd
 
 import pytest
 from fastapi import UploadFile
+from unittest.mock import MagicMock
 
 from app.services.bulk_service import BulkService
 from app.integrations.eboardresults.exceptions import EBoardResponseError
@@ -313,6 +314,18 @@ def test_generate_csv_report():
 def test_process_bulk_records_all_valid():
     service = BulkService()
 
+    service.result_service.get_individual_result = MagicMock(
+        return_value={
+            "success": True,
+            "data": {
+                "res": {
+                    "name": "DEMO STUDENT",
+                    "res_detail": "GPA=5.00",
+                }
+            }
+        }
+    )
+
     records = [
         {
             "board": "dhaka",
@@ -377,6 +390,18 @@ def test_process_bulk_records_all_invalid():
 def test_process_bulk_records_mixed():
     service = BulkService()
 
+    service.result_service.get_individual_result = MagicMock(
+        return_value={
+            "success": True,
+            "data": {
+                "res": {
+                    "name": "DEMO STUDENT",
+                    "res_detail": "GPA=5.00",
+                }
+            }
+        }
+    )
+
     records = [
         {
             "board": "dhaka",
@@ -405,4 +430,143 @@ def test_process_bulk_records_mixed():
     assert result["invalid_data"][0]["roll"] == "234567"
 
 
+def test_prepare_report_records_with_result():
+
+    service = BulkService()
+
+    valid_records = [
+        {
+            "board": "dinajpur",
+            "exam": "hsc",
+            "year": "2025",
+            "result_type": "1",
+            "roll": "987654",
+            "reg": "2025987654",
+            "eiin": "",
+            "dcode": "",
+            "ccode": "",
+            "processing_status": "Success",
+            "result": {
+                "success": True,
+                "message": "Student result retrieved successfully.",
+                "data": {
+                    "status": 0,
+                    "msg": "Success",
+                    "res": {
+                        "name": "DEMO STUDENT",
+                        "fname": "DEMO FATHER",
+                        "mname": "DEMO MOTHER",
+                        "roll_no": "987654",
+                        "regno": "2025987654",
+                        "session": "2023-24",
+                        "res_detail": "GPA=5.00",
+                        "board_name": "DINAJPUR",
+                        "stud_group": "SCIENCE",
+                        "stud_type": "REGULAR",
+                        "sex": "0",
+                        "dob": "2007-05-15",
+                        "tot_full": 1000,
+                        "conv_1000": 950,
+                        "sub4th": "HIGHER MATHEMATICS",
+                        "inst_name": "DEMO COLLEGE",
+                        "t_name": "DEMO THANA",
+                        "z_name": "DEMO DISTRICT",
+                        "display_details": (
+                            "101:A+,107:A+,275:A+,"
+                            "174:A+,176:A+,265:A+,178:A+"
+                        ),
+                        "display_details_ca": "101:A1,107:A1",
+                    },
+                    "sfile": "demo_hsc_result.json",
+                    "sub_codes": [
+                        "101",
+                        "107",
+                        "275",
+                        "174",
+                        "176",
+                        "265",
+                        "178",
+                    ],
+                    "sub_details": [
+                        {
+                            "SUB_CODE": "101",
+                            "SUB_NAME": "BANGLA",
+                        },
+                        {
+                            "SUB_CODE": "107",
+                            "SUB_NAME": "ENGLISH",
+                        },
+                        {
+                            "SUB_CODE": "275",
+                            "SUB_NAME": "INFORMATION & COMMUNICATION TECHNOLOGY",
+                        },
+                        {
+                            "SUB_CODE": "174",
+                            "SUB_NAME": "PHYSICS",
+                        },
+                        {
+                            "SUB_CODE": "176",
+                            "SUB_NAME": "CHEMISTRY",
+                        },
+                        {
+                            "SUB_CODE": "265",
+                            "SUB_NAME": "HIGHER MATHEMATICS",
+                        },
+                        {
+                            "SUB_CODE": "178",
+                            "SUB_NAME": "BIOLOGY",
+                        },
+                    ],
+                    "linked": None,
+                    "showmarks": 0,
+                    "totalonly": 0,
+                    "hidefailed": 1,
+                },
+            },
+            "error": "",
+        }
+    ]
+
+    report_records = service.prepare_report_records(
+        valid_records,
+        [],
+    )
+
+    assert len(report_records) == 1
+
+    record = report_records[0]
+
+    # Student information
+    assert record["student_name"] == "DEMO STUDENT"
+    assert record["father_name"] == "DEMO FATHER"
+    assert record["mother_name"] == "DEMO MOTHER"
+    assert record["roll_no"] == "987654"
+    assert record["registration_no"] == "2025987654"
+    assert record["session"] == "2023-24"
+
+    # Examination information
+    assert record["board_name"] == "DINAJPUR"
+    assert record["group"] == "SCIENCE"
+    assert record["student_type"] == "REGULAR"
+    assert record["gender"] == "0"
+    assert record["date_of_birth"] == "2007-05-15"
+
+    # Academic result
+    assert record["gpa"] == "5.00"
+
+    # Institution information
+    assert record["institution"] == "DEMO COLLEGE"
+    assert record["thana"] == "DEMO THANA"
+    assert record["district"] == "DEMO DISTRICT"
+
+    # Subject grades
+    assert "BANGLA: A+" in record["subject_grades"]
+    assert "ENGLISH: A+" in record["subject_grades"]
+    assert "PHYSICS: A+" in record["subject_grades"]
+    assert "CHEMISTRY: A+" in record["subject_grades"]
+    assert "BIOLOGY: A+" in record["subject_grades"]
+
+    # Processing information
+    assert record["processing_status"] == "Success"
+    assert record["error"] == ""
 

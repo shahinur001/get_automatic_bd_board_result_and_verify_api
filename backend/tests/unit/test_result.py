@@ -18,42 +18,42 @@ try:
     # Use an existing authorized session.
     response = client.get_page()
 
-    for i in range(2):
+    # for i in range(1):
     
-        captcha_client = CaptchaClient(client.session)
+    captcha_client = CaptchaClient(client.session)
 
-        image_data = captcha_client.get_captcha_image(
-            timestamp=str(int(time.time() * 1000))
-        )
+    image_data = captcha_client.get_captcha_image(
+        timestamp=str(int(time.time() * 1000))
+    )
 
-        output_path = Path("captcha.png")
-        output_path.write_bytes(image_data)
+    output_path = Path("captcha.png")
+    output_path.write_bytes(image_data)
 
-        print("CAPTCHA image received successfully!")
-        print("Saved:", output_path.resolve())
-        print("Image size:", len(image_data), "bytes")
+    print("CAPTCHA image received successfully!")
+    print("Saved:", output_path.resolve())
+    print("Image size:", len(image_data), "bytes")
 
-        img = Image.open(BytesIO(image_data))
+    img = Image.open(BytesIO(image_data))
 
-        ocr_client = ExtractText()
-        output_text = ocr_client.get_extracted_text(img=img)
+    ocr_client = ExtractText()
+    output_text = ocr_client.get_extracted_text(img=img)
 
-        print(f"Test output: {output_text}")
+    print(f"Test output: {output_text}")
 
-        result_client = ResultParser(client.session)
+    result_client = ResultParser(client.session)
 
-        ind_result = result_client.get_ind_result(
-            exam_board=settings.EXAM_BOARD,
-            exam_type=settings.EXAM_TYPE,
-            exam_year=settings.EXAM_YEAR,
-            result_type=1,
-            roll=settings.ROLL,
-            registration=settings.REG_NO,
-            extracted_text=str(output_text)
-        )
+    ind_result = result_client.get_ind_result(
+        exam_board=settings.EXAM_BOARD,
+        exam_type=settings.EXAM_TYPE,
+        exam_year=settings.EXAM_YEAR,
+        result_type=1,
+        roll=settings.ROLL,
+        registration=settings.REG_NO,
+        extracted_text=str(output_text)
+    )
 
-        print("Result get succesfully")
-        print(ind_result)
+    print("Result get succesfully")
+    print(ind_result)
 
 except EBoardResultsError as error:
     print("Integration error:", error)

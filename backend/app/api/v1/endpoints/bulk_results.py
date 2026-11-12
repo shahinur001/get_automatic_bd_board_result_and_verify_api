@@ -1,3 +1,4 @@
+
 from typing import Literal
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
@@ -32,7 +33,7 @@ async def process_bulk_results(
         # Generate CSV report
         if output_format == "csv":
             report = bulk_service.generate_csv_report(
-                result["valid_data"],
+                result["results"],
                 result["invalid_data"],
             )
 
@@ -44,9 +45,9 @@ async def process_bulk_results(
                 },
             )
 
-         # Generate Excel report
+        # Generate Excel report
         report = bulk_service.generate_excel_report(
-            result["valid_data"],
+            result["results"],
             result["invalid_data"],
         )
 
@@ -57,7 +58,7 @@ async def process_bulk_results(
                 "Content-Disposition": 'attachment; filename="bulk_results.xlsx"'
             },
         )
-    
+
     except EBoardResponseError as exc:
         raise HTTPException(
             status_code=400,
